@@ -162,7 +162,6 @@ section{padding:90px 24px;scroll-margin-top:90px;}
 }
 .room-thumb.r1{background:linear-gradient(135deg,#6b8f5f,#a9c48f);}
 .room-thumb.r2{background:linear-gradient(135deg,#7c9a6f,#c9b98f);}
-.room-thumb.r3{background:linear-gradient(135deg,#5c7a5c,#8fae8a);}
 .room-body{padding:22px;}
 .room-body h3{color:var(--green-deep);font-size:1.15rem;margin-bottom:8px;font-weight:800;}
 .room-body p{color:#666;font-size:0.9rem;margin-bottom:14px;}
