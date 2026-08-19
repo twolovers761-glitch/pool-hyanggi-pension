@@ -10,10 +10,13 @@ function calDateStr(year, month, day) {
 
 // container: element to render into
 // blockedDates: Set<'YYYY-MM-DD'> (read fresh on every render)
-// mode: 'view' (read-only) | 'admin' (dates clickable, calls onDayClick(dateStr))
-function createCalendar({ container, blockedDates, mode = 'view', onDayClick, initialDate = new Date() }) {
+// mode: 'view' (read-only) | 'admin' (any date clickable, calls onDayClick(dateStr))
+//       | 'picker' (only non-blocked, non-past dates clickable/selectable)
+// selectedDate: 'YYYY-MM-DD' | null — highlighted cell, only meaningful in 'picker' mode
+function createCalendar({ container, blockedDates, mode = 'view', onDayClick, initialDate = new Date(), selectedDate = null }) {
   let year = initialDate.getFullYear();
   let month = initialDate.getMonth();
+  let selected = selectedDate;
 
   function render() {
     const today = new Date();
@@ -38,10 +41,17 @@ function createCalendar({ container, blockedDates, mode = 'view', onDayClick, in
       if (c.otherMonth) {
         return `<span class="calendar-day other-month">${c.day}</span>`;
       }
+      const isBlocked = blockedDates.has(c.dateStr);
+      const isPast = c.dateStr < todayStr;
       const classes = ['calendar-day'];
-      if (blockedDates.has(c.dateStr)) classes.push('blocked');
+      if (isBlocked) classes.push('blocked');
       if (c.dateStr === todayStr) classes.push('today');
-      if (mode === 'admin') classes.push('clickable');
+      if (c.dateStr === selected) classes.push('selected');
+      if (mode === 'admin') {
+        classes.push('clickable');
+      } else if (mode === 'picker') {
+        classes.push(isBlocked || isPast ? 'disabled' : 'clickable');
+      }
       return `<span class="${classes.join(' ')}" data-date="${c.dateStr}">${c.day}</span>`;
     }).join('');
 
@@ -70,6 +80,14 @@ function createCalendar({ container, blockedDates, mode = 'view', onDayClick, in
       container.querySelectorAll('.calendar-day.clickable').forEach((el) => {
         el.addEventListener('click', () => onDayClick(el.dataset.date));
       });
+    } else if (mode === 'picker') {
+      container.querySelectorAll('.calendar-day.clickable').forEach((el) => {
+        el.addEventListener('click', () => {
+          selected = el.dataset.date;
+          render();
+          if (onDayClick) onDayClick(selected);
+        });
+      });
     }
   }
 
@@ -79,6 +97,10 @@ function createCalendar({ container, blockedDates, mode = 'view', onDayClick, in
     render,
     setBlockedDates(newSet) {
       blockedDates = newSet;
+      render();
+    },
+    setSelectedDate(dateStr) {
+      selected = dateStr;
       render();
     },
   };

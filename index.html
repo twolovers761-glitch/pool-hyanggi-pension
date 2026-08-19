@@ -195,16 +195,15 @@
           </select>
         </div>
         <div class="form-group">
-          <label for="checkin">희망 체크인 날짜</label>
-          <input type="date" id="checkin" name="checkin">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
           <label for="guests">인원</label>
           <input type="number" id="guests" name="guests" min="1" max="20" placeholder="예: 4">
         </div>
-        <div class="form-group"></div>
+      </div>
+      <div class="form-group">
+        <label>희망 체크인 날짜</label>
+        <div id="checkinPicker" class="calendar"></div>
+        <input type="hidden" id="checkin" name="checkin">
+        <p id="checkinSelectedText" class="form-note" style="text-align:left;margin:0;">방을 먼저 선택하면 예약 가능한 날짜가 표시돼요.</p>
       </div>
       <div class="form-group">
         <label for="message">문의 내용</label>
@@ -262,6 +261,31 @@
     });
   });
 
+  // --- Inquiry form ---
+  const inquiryForm = document.getElementById('inquiryForm');
+  const inquirySubmit = document.getElementById('inquirySubmit');
+  const formStatus = document.getElementById('formStatus');
+  const roomSelect = document.getElementById('room');
+  const checkinSelectedText = document.getElementById('checkinSelectedText');
+
+  const checkinPicker = createCalendar({
+    container: document.getElementById('checkinPicker'),
+    blockedDates: blockedByRoom.small,
+    mode: 'picker',
+    onDayClick: (dateStr) => {
+      inquiryForm.checkin.value = dateStr;
+      checkinSelectedText.textContent = `선택한 날짜: ${dateStr}`;
+    },
+  });
+
+  roomSelect.addEventListener('change', () => {
+    const room = roomSelect.value;
+    checkinPicker.setBlockedDates(blockedByRoom[room] || new Set());
+    checkinPicker.setSelectedDate(null);
+    inquiryForm.checkin.value = '';
+    checkinSelectedText.textContent = '';
+  });
+
   (async () => {
     const { data, error } = await supabaseClient.from('blocked_dates').select('room,date');
     if (error || !data) return;
@@ -269,12 +293,8 @@
       if (blockedByRoom[row.room]) blockedByRoom[row.room].add(row.date);
     });
     availabilityCalendar.setBlockedDates(blockedByRoom[currentAvailabilityRoom]);
+    checkinPicker.setBlockedDates(blockedByRoom[roomSelect.value] || blockedByRoom.small);
   })();
-
-  // --- Inquiry form ---
-  const inquiryForm = document.getElementById('inquiryForm');
-  const inquirySubmit = document.getElementById('inquirySubmit');
-  const formStatus = document.getElementById('formStatus');
 
   function smsFallbackUrl(name, phone, room, checkin, guests, message) {
     const lines = ['[풀향기 펜션 예약 문의]', `이름: ${name}`, `연락처: ${phone}`];
@@ -297,8 +317,12 @@
     const message = inquiryForm.message.value.trim();
 
     if (checkin && blockedByRoom[room] && blockedByRoom[room].has(checkin)) {
-      const proceed = confirm('선택하신 날짜는 이미 마감된 것으로 보여요. 그래도 문의를 보내시겠어요?');
-      if (!proceed) return;
+      formStatus.textContent = '선택하신 날짜가 방금 마감되었어요. 날짜를 다시 선택해주세요.';
+      formStatus.className = 'form-status error';
+      checkinPicker.setBlockedDates(blockedByRoom[room]);
+      inquiryForm.checkin.value = '';
+      checkinSelectedText.textContent = '';
+      return;
     }
 
     inquirySubmit.disabled = true;
@@ -324,6 +348,9 @@
     }
 
     inquiryForm.reset();
+    checkinPicker.setSelectedDate(null);
+    checkinPicker.setBlockedDates(blockedByRoom.small);
+    checkinSelectedText.textContent = '';
     formStatus.textContent = '문의가 접수되었습니다. 빠르게 연락드릴게요!';
     formStatus.className = 'form-status success';
   });

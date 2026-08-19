@@ -204,6 +204,9 @@ section{padding:90px 24px;scroll-margin-top:90px;}
 .calendar-day.blocked{background:#e28b8b;color:var(--white);font-weight:700;}
 .calendar-day.clickable{cursor:pointer;}
 .calendar-day.clickable:hover{outline:2px solid var(--green-soft);}
+.calendar-day.disabled{cursor:not-allowed;}
+.calendar-day.disabled:not(.blocked){color:#ccc;}
+.calendar-day.selected{outline:3px solid var(--green-deep);font-weight:800;}
 .calendar-legend{
   display:flex;justify-content:center;gap:18px;margin-top:14px;
   font-size:0.8rem;color:#666;
