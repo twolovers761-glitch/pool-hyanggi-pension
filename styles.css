@@ -322,6 +322,12 @@ footer{
 }
 footer .foot-logo{font-weight:800;color:var(--white);font-size:1.1rem;margin-bottom:10px;}
 footer p{margin:4px 0;opacity:0.85;}
+.foot-blog{
+  display:inline-block;margin-top:14px;padding:8px 18px;border-radius:50px;
+  border:1px solid rgba(255,255,255,0.35);color:var(--white);font-size:0.85rem;font-weight:600;
+  transition:background .2s;
+}
+.foot-blog:hover{background:rgba(255,255,255,0.1);}
 
 /* Admin page */
 .admin-shell{
