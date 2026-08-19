@@ -185,7 +185,7 @@ section{padding:90px 24px;scroll-margin-top:90px;}
 }
 .room-toggle button.active{background:var(--green-deep);color:var(--white);border-color:var(--green-deep);}
 .calendar{
-  max-width:360px;margin:0 auto;background:var(--cream);
+  width:100%;max-width:360px;margin:0 auto;background:var(--cream);
   border-radius:16px;padding:20px;box-shadow:0 8px 20px rgba(60,80,50,0.08);
 }
 .calendar-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
