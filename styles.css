@@ -228,6 +228,22 @@ section{padding:90px 24px;scroll-margin-top:90px;}
 .facility-card h4{color:var(--green-deep);font-weight:800;margin-bottom:6px;}
 .facility-card p{color:#777;font-size:0.85rem;}
 
+/* Policy */
+.policy-rules{max-width:460px;margin:0 auto 40px;}
+.policy-card{
+  max-width:720px;margin:0 auto;background:var(--white);
+  border-radius:18px;padding:36px;box-shadow:0 10px 24px rgba(60,80,50,0.08);
+  text-align:center;
+}
+.policy-highlight{font-size:1.1rem;font-weight:700;color:var(--green-deep);margin-bottom:6px;}
+.policy-sub{font-size:0.85rem;color:#888;margin-bottom:20px;}
+.policy-warning{color:#c0392b;font-weight:700;margin-bottom:20px;}
+.policy-table-wrap{overflow-x:auto;margin-bottom:20px;}
+table.policy-table{width:100%;min-width:420px;border-collapse:collapse;font-size:0.9rem;}
+table.policy-table th,table.policy-table td{padding:10px 12px;border-bottom:1px solid #eee;text-align:center;}
+table.policy-table th{background:var(--cream);color:var(--brown);font-weight:700;}
+.policy-noshow{color:#c0392b;font-weight:800;text-decoration:underline;margin-bottom:16px;}
+
 /* Location */
 .location{background:var(--white);}
 .location-grid{
@@ -335,4 +351,5 @@ table.reservations-table th{color:var(--brown);font-weight:700;background:var(--
   section{padding:64px 20px;}
   .form-row{grid-template-columns:1fr;}
   .inquiry-form{padding:24px;}
+  .policy-card{padding:24px;}
 }
