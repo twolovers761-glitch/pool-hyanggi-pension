@@ -33,20 +33,37 @@
     </form>
   </div>
 
-  <div id="listWrap" class="admin-table-wrap" style="display:none;">
-    <div class="top-bar">
-      <h2>예약 문의 목록</h2>
-      <button id="logoutBtn" class="btn btn-small">로그아웃</button>
+  <div id="listWrap" class="admin-list-wrap" style="display:none;">
+    <div class="admin-table-wrap">
+      <div class="top-bar">
+        <h2>예약 문의 목록</h2>
+        <button id="logoutBtn" class="btn btn-small">로그아웃</button>
+      </div>
+      <div id="tableHolder"></div>
     </div>
-    <div id="tableHolder"></div>
+
+    <div class="admin-table-wrap">
+      <div class="top-bar">
+        <h2>예약 마감 날짜 관리</h2>
+      </div>
+      <p class="form-note" style="margin-bottom:16px;">날짜를 클릭하면 마감/해제가 토글됩니다.</p>
+      <div class="room-toggle" id="blockToggle">
+        <button type="button" class="active" data-room="small">작은 방</button>
+        <button type="button" data-room="large">큰 방</button>
+      </div>
+      <div id="blockCalendar" class="calendar"></div>
+      <p id="blockStatus" class="form-note" style="margin-top:12px;"></p>
+    </div>
   </div>
 
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
+<script src="calendar.js"></script>
 <script>
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const ROOM_LABELS = { small: '작은 방', large: '큰 방' };
 
   const loginCard = document.getElementById('loginCard');
   const listWrap = document.getElementById('listWrap');
@@ -88,6 +105,7 @@
         <td>${formatDate(r.created_at)}</td>
         <td>${escapeHtml(r.name)}</td>
         <td>${escapeHtml(r.phone)}</td>
+        <td>${r.room ? escapeHtml(ROOM_LABELS[r.room] || r.room) : '-'}</td>
         <td>${r.checkin_date ? escapeHtml(r.checkin_date) : '-'}</td>
         <td>${r.guests ? escapeHtml(r.guests) + '명' : '-'}</td>
         <td>${r.message ? escapeHtml(r.message) : '-'}</td>
@@ -98,7 +116,7 @@
       <table class="reservations-table">
         <thead>
           <tr>
-            <th>접수시각</th><th>이름</th><th>연락처</th><th>희망 체크인</th><th>인원</th><th>문의내용</th>
+            <th>접수시각</th><th>이름</th><th>연락처</th><th>객실</th><th>희망 체크인</th><th>인원</th><th>문의내용</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -106,10 +124,81 @@
     `;
   }
 
+  // --- Blocked dates management ---
+  const blockedByRoom = { small: new Set(), large: new Set() };
+  let currentBlockRoom = 'small';
+  const blockToggle = document.getElementById('blockToggle');
+  const blockCalendarEl = document.getElementById('blockCalendar');
+  const blockStatus = document.getElementById('blockStatus');
+  let blockCalendar = null;
+
+  async function loadBlockedDates() {
+    const { data, error } = await supabaseClient.from('blocked_dates').select('room,date');
+    blockedByRoom.small = new Set();
+    blockedByRoom.large = new Set();
+    if (error) {
+      blockStatus.textContent = '마감 날짜를 불러오지 못했습니다: ' + error.message;
+      return;
+    }
+    (data || []).forEach((row) => {
+      if (blockedByRoom[row.room]) blockedByRoom[row.room].add(row.date);
+    });
+    if (blockCalendar) blockCalendar.setBlockedDates(blockedByRoom[currentBlockRoom]);
+  }
+
+  async function toggleBlockedDate(dateStr) {
+    const isBlocked = blockedByRoom[currentBlockRoom].has(dateStr);
+    blockStatus.textContent = '저장 중...';
+
+    if (isBlocked) {
+      const { error } = await supabaseClient
+        .from('blocked_dates')
+        .delete()
+        .eq('room', currentBlockRoom)
+        .eq('date', dateStr);
+      if (error) {
+        blockStatus.textContent = '해제 실패: ' + error.message;
+        return;
+      }
+      blockedByRoom[currentBlockRoom].delete(dateStr);
+    } else {
+      const { error } = await supabaseClient
+        .from('blocked_dates')
+        .insert({ room: currentBlockRoom, date: dateStr });
+      if (error) {
+        blockStatus.textContent = '마감 처리 실패: ' + error.message;
+        return;
+      }
+      blockedByRoom[currentBlockRoom].add(dateStr);
+    }
+
+    blockStatus.textContent = '';
+    blockCalendar.setBlockedDates(blockedByRoom[currentBlockRoom]);
+  }
+
+  blockToggle.querySelectorAll('button').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      blockToggle.querySelectorAll('button').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentBlockRoom = btn.dataset.room;
+      blockCalendar.setBlockedDates(blockedByRoom[currentBlockRoom]);
+    });
+  });
+
   function showLoggedIn() {
     loginCard.style.display = 'none';
-    listWrap.style.display = 'block';
+    listWrap.style.display = 'flex';
     loadReservations();
+
+    if (!blockCalendar) {
+      blockCalendar = createCalendar({
+        container: blockCalendarEl,
+        blockedDates: blockedByRoom[currentBlockRoom],
+        mode: 'admin',
+        onDayClick: toggleBlockedDate,
+      });
+    }
+    loadBlockedDates();
   }
 
   function showLoggedOut() {

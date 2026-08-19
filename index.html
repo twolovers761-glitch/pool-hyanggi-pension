@@ -83,6 +83,22 @@
         </div>
       </div>
     </div>
+
+    <div class="availability">
+      <div class="availability-head">
+        <h3>예약 가능 여부 확인</h3>
+        <p>빨간색으로 표시된 날짜는 이미 마감된 날짜입니다</p>
+      </div>
+      <div class="room-toggle" id="availabilityToggle">
+        <button type="button" class="active" data-room="small">작은 방</button>
+        <button type="button" data-room="large">큰 방</button>
+      </div>
+      <div id="availabilityCalendar" class="calendar"></div>
+      <div class="calendar-legend">
+        <span><span class="legend-dot open"></span>예약 가능</span>
+        <span><span class="legend-dot blocked"></span>마감</span>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -171,13 +187,24 @@
       </div>
       <div class="form-row">
         <div class="form-group">
+          <label for="room">희망 객실 *</label>
+          <select id="room" name="room" required>
+            <option value="" disabled selected>선택해주세요</option>
+            <option value="small">작은 방 (기준 4인·최대 6인)</option>
+            <option value="large">큰 방 (기준 10인·최대 12인)</option>
+          </select>
+        </div>
+        <div class="form-group">
           <label for="checkin">희망 체크인 날짜</label>
           <input type="date" id="checkin" name="checkin">
         </div>
+      </div>
+      <div class="form-row">
         <div class="form-group">
           <label for="guests">인원</label>
           <input type="number" id="guests" name="guests" min="1" max="20" placeholder="예: 4">
         </div>
+        <div class="form-group"></div>
       </div>
       <div class="form-group">
         <label for="message">문의 내용</label>
@@ -203,6 +230,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
+<script src="calendar.js"></script>
 <script>
   const navToggle = document.getElementById('navToggle');
   const navMenu = document.getElementById('navMenu');
@@ -210,14 +238,47 @@
   navMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => navMenu.classList.remove('open')));
 
   const PENSION_PHONE = '010-5825-7095';
+  const ROOM_LABELS = { small: '작은 방', large: '큰 방' };
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  // --- Availability calendar ---
+  const blockedByRoom = { small: new Set(), large: new Set() };
+  let currentAvailabilityRoom = 'small';
+  const availabilityCalendarEl = document.getElementById('availabilityCalendar');
+  const availabilityToggle = document.getElementById('availabilityToggle');
+
+  const availabilityCalendar = createCalendar({
+    container: availabilityCalendarEl,
+    blockedDates: blockedByRoom[currentAvailabilityRoom],
+    mode: 'view',
+  });
+
+  availabilityToggle.querySelectorAll('button').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      availabilityToggle.querySelectorAll('button').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentAvailabilityRoom = btn.dataset.room;
+      availabilityCalendar.setBlockedDates(blockedByRoom[currentAvailabilityRoom]);
+    });
+  });
+
+  (async () => {
+    const { data, error } = await supabaseClient.from('blocked_dates').select('room,date');
+    if (error || !data) return;
+    data.forEach((row) => {
+      if (blockedByRoom[row.room]) blockedByRoom[row.room].add(row.date);
+    });
+    availabilityCalendar.setBlockedDates(blockedByRoom[currentAvailabilityRoom]);
+  })();
+
+  // --- Inquiry form ---
   const inquiryForm = document.getElementById('inquiryForm');
   const inquirySubmit = document.getElementById('inquirySubmit');
   const formStatus = document.getElementById('formStatus');
 
-  function smsFallbackUrl(name, phone, checkin, guests, message) {
+  function smsFallbackUrl(name, phone, room, checkin, guests, message) {
     const lines = ['[풀향기 펜션 예약 문의]', `이름: ${name}`, `연락처: ${phone}`];
+    if (room) lines.push(`희망 객실: ${ROOM_LABELS[room] || room}`);
     if (checkin) lines.push(`희망 체크인: ${checkin}`);
     if (guests) lines.push(`인원: ${guests}명`);
     if (message) lines.push(`문의내용: ${message}`);
@@ -230,9 +291,15 @@
 
     const name = inquiryForm.name.value.trim();
     const phone = inquiryForm.phone.value.trim();
+    const room = inquiryForm.room.value;
     const checkin = inquiryForm.checkin.value;
     const guests = inquiryForm.guests.value.trim();
     const message = inquiryForm.message.value.trim();
+
+    if (checkin && blockedByRoom[room] && blockedByRoom[room].has(checkin)) {
+      const proceed = confirm('선택하신 날짜는 이미 마감된 것으로 보여요. 그래도 문의를 보내시겠어요?');
+      if (!proceed) return;
+    }
 
     inquirySubmit.disabled = true;
     formStatus.textContent = '전송 중...';
@@ -241,6 +308,7 @@
     const { error } = await supabaseClient.from('reservations').insert({
       name,
       phone,
+      room,
       checkin_date: checkin || null,
       guests: guests ? Number(guests) : null,
       message: message || null,
@@ -251,7 +319,7 @@
     if (error) {
       formStatus.textContent = '전송에 실패했어요. 문자 앱으로 대신 보내드릴게요.';
       formStatus.className = 'form-status error';
-      window.location.href = smsFallbackUrl(name, phone, checkin, guests, message);
+      window.location.href = smsFallbackUrl(name, phone, room, checkin, guests, message);
       return;
     }
 

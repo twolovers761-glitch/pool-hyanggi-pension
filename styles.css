@@ -172,6 +172,47 @@ section{padding:90px 24px;scroll-margin-top:90px;}
   border-top:1px dashed #d9cdb0;padding-top:12px;
 }
 
+/* Availability calendar */
+.availability{margin-top:56px;}
+.availability-head{text-align:center;margin-bottom:20px;}
+.availability-head h3{color:var(--green-deep);font-weight:800;font-size:1.2rem;margin-bottom:6px;}
+.availability-head p{color:#777;font-size:0.88rem;}
+.room-toggle{display:flex;justify-content:center;gap:10px;margin-bottom:20px;}
+.room-toggle button{
+  padding:9px 22px;border-radius:50px;border:1px solid var(--green-soft);
+  background:var(--white);color:var(--green-deep);font-weight:700;
+  font-size:0.9rem;cursor:pointer;transition:background .2s,color .2s;
+}
+.room-toggle button.active{background:var(--green-deep);color:var(--white);border-color:var(--green-deep);}
+.calendar{
+  max-width:360px;margin:0 auto;background:var(--cream);
+  border-radius:16px;padding:20px;box-shadow:0 8px 20px rgba(60,80,50,0.08);
+}
+.calendar-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.cal-title{font-weight:800;color:var(--green-deep);}
+.cal-nav{
+  background:var(--white);border:1px solid #ddd;border-radius:8px;
+  width:30px;height:30px;font-size:1rem;cursor:pointer;color:var(--green-deep);
+}
+.calendar-weekdays,.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;}
+.calendar-weekdays span{font-size:0.75rem;color:#999;padding-bottom:6px;font-weight:700;}
+.calendar-day{
+  padding:8px 0;font-size:0.85rem;border-radius:8px;color:var(--text);
+}
+.calendar-day.other-month{color:#ccc;}
+.calendar-day.today{font-weight:800;text-decoration:underline;}
+.calendar-day.blocked{background:#e28b8b;color:var(--white);font-weight:700;}
+.calendar-day.clickable{cursor:pointer;}
+.calendar-day.clickable:hover{outline:2px solid var(--green-soft);}
+.calendar-legend{
+  display:flex;justify-content:center;gap:18px;margin-top:14px;
+  font-size:0.8rem;color:#666;
+}
+.calendar-legend span{display:flex;align-items:center;gap:6px;}
+.legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+.legend-dot.blocked{background:#e28b8b;}
+.legend-dot.open{background:var(--white);border:1px solid #ccc;}
+
 /* Facilities */
 .facility-grid{
   display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;
@@ -222,11 +263,11 @@ section{padding:90px 24px;scroll-margin-top:90px;}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 .form-group{display:flex;flex-direction:column;gap:6px;}
 .form-group label{font-size:0.85rem;font-weight:600;opacity:0.9;}
-.form-group input,.form-group textarea{
+.form-group input,.form-group select,.form-group textarea{
   padding:12px 14px;border-radius:10px;border:none;
   font-size:0.95rem;font-family:inherit;background:var(--white);color:var(--text);
 }
-.form-group input:focus,.form-group textarea:focus{outline:2px solid var(--green-soft);}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:2px solid var(--green-soft);}
 .form-group textarea{resize:vertical;}
 .inquiry-form .btn{align-self:center;margin-top:4px;border:none;cursor:pointer;}
 .form-note{font-size:0.8rem;opacity:0.75;text-align:center;}
@@ -258,6 +299,7 @@ footer p{margin:4px 0;opacity:0.85;}
   width:100%;padding:12px 14px;border-radius:10px;
   border:1px solid #ddd;font-size:0.95rem;font-family:inherit;
 }
+.admin-list-wrap{width:100%;max-width:1000px;flex-direction:column;gap:24px;}
 .admin-table-wrap{
   width:100%;max-width:1000px;background:var(--white);
   border-radius:18px;padding:24px;box-shadow:0 14px 30px rgba(60,80,50,0.1);
