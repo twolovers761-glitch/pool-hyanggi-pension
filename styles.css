@@ -236,6 +236,7 @@ section{padding:90px 24px;scroll-margin-top:90px;}
   background:rgba(15,20,15,0.92);
   display:flex;align-items:center;justify-content:center;
 }
+.gallery-modal[hidden]{display:none;}
 .gallery-image{
   max-width:88vw;max-height:82vh;object-fit:contain;
   border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,0.5);
