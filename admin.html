@@ -111,6 +111,9 @@
         <td>${r.nights ? escapeHtml(r.nights) + '박' : '-'}</td>
         <td>${r.guests ? escapeHtml(r.guests) + '명' : '-'}</td>
         <td>${r.message ? escapeHtml(r.message) : '-'}</td>
+        <td><button type="button" class="btn btn-small cancel-btn"
+          data-id="${escapeHtml(r.id)}" data-room="${escapeHtml(r.room || '')}"
+          data-checkin="${escapeHtml(r.checkin_date || '')}" data-nights="${escapeHtml(r.nights || '')}">취소</button></td>
       </tr>
     `).join('');
 
@@ -118,13 +121,45 @@
       <table class="reservations-table">
         <thead>
           <tr>
-            <th>접수시각</th><th>이름</th><th>연락처</th><th>객실</th><th>희망 체크인</th><th>숙박</th><th>인원</th><th>문의내용</th>
+            <th>접수시각</th><th>이름</th><th>연락처</th><th>객실</th><th>희망 체크인</th><th>숙박</th><th>인원</th><th>문의내용</th><th>취소</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
       </table>
     `;
   }
+
+  tableHolder.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.cancel-btn');
+    if (!btn) return;
+    const { id, room, checkin, nights } = btn.dataset;
+
+    if (!confirm('이 예약을 취소할까요? 막아둔 날짜도 함께 풀립니다.')) return;
+
+    btn.disabled = true;
+    btn.textContent = '취소 중...';
+
+    const { error: delResError } = await supabaseClient.from('reservations').delete().eq('id', id);
+    if (delResError) {
+      alert('취소 실패: ' + delResError.message);
+      btn.disabled = false;
+      btn.textContent = '취소';
+      return;
+    }
+
+    if (room && checkin && nights) {
+      const [y, m, d] = checkin.split('-').map(Number);
+      const dates = [];
+      for (let i = 0; i < Number(nights); i++) {
+        const dt = new Date(y, m - 1, d + i);
+        dates.push(calDateStr(dt.getFullYear(), dt.getMonth(), dt.getDate()));
+      }
+      await supabaseClient.from('blocked_dates').delete().eq('room', room).in('date', dates);
+    }
+
+    loadReservations();
+    loadBlockedDates();
+  });
 
   // --- Blocked dates management ---
   const blockedByRoom = { small: new Set(), large: new Set() };

@@ -361,6 +361,9 @@ table.reservations-table th,table.reservations-table td{
 table.reservations-table th{color:var(--brown);font-weight:700;background:var(--cream);}
 .btn-small{padding:8px 20px;font-size:0.85rem;}
 .admin-empty{color:#888;text-align:center;padding:24px;}
+.cancel-btn{background:#e28b8b;color:var(--white);box-shadow:none;padding:6px 14px;}
+.cancel-btn:hover{background:#c0392b;transform:none;}
+.cancel-btn:disabled{opacity:0.6;cursor:not-allowed;}
 
 @media (max-width:820px){
   nav{position:fixed;top:64px;left:0;right:0;background:var(--white);
