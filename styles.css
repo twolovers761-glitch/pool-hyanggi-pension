@@ -53,16 +53,11 @@ nav a:hover{color:var(--green-deep);}
   text-align:center;color:var(--white);
   position:relative;
   background:
-    linear-gradient(180deg, rgba(30,45,30,0.35), rgba(20,30,20,0.65)),
-    linear-gradient(135deg, #4a6b47 0%, #7c9a6f 45%, #a9c48f 100%);
+    linear-gradient(180deg, rgba(20,30,20,0.45), rgba(15,25,15,0.7)),
+    url('img/hero-stream.jpg');
+  background-size:cover;
+  background-position:center;
   overflow:hidden;
-}
-.hero::before{
-  content:"";
-  position:absolute;inset:0;
-  background:
-    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.12) 0, transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(255,255,255,0.10) 0, transparent 45%);
 }
 .hero-content{position:relative;z-index:2;padding:0 20px;}
 .hero-content .eyebrow{
