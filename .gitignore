@@ -1,0 +1,4 @@
+# Raw source photos (unprocessed originals, not for the site) - keep only
+# the resized/curated files we actually reference (img/room-*.jpg etc.)
+img/*
+!img/room-*.jpg
