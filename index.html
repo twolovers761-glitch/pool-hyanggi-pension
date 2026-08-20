@@ -92,6 +92,7 @@
           <p>아늑하게 머물 수 있는 객실로 소규모 인원에 알맞습니다.</p>
           <p class="room-price-note">비수기·평일 15만원 / 성수기(7월말~8월초)·주말 20만원<br>기준인원(4인) 초과 시 1인당 2만원 추가 (유아 포함 최대 6인)</p>
           <div class="room-meta"><span>기준 4인 · 최대 6인</span><span>15~20만원</span></div>
+          <button type="button" class="btn btn-small gallery-btn" data-room="small">📷 사진 더보기</button>
         </div>
       </div>
       <div class="room-card">
@@ -101,6 +102,7 @@
           <p>여러 인원이 함께 넉넉하게 지낼 수 있는 넓은 객실입니다.</p>
           <p class="room-price-note">비수기·평일 40만원 / 성수기(7월말~8월초)·주말 45만원<br>기준인원(10인) 초과 시 1인당 2만원 추가 (유아 포함 최대 12인)</p>
           <div class="room-meta"><span>기준 10인 · 최대 12인</span><span>40~45만원</span></div>
+          <button type="button" class="btn btn-small gallery-btn" data-room="large">📷 사진 더보기</button>
         </div>
       </div>
     </div>
@@ -351,6 +353,14 @@
   <p>© 2026 Pool Hyanggi Pension. All rights reserved.</p>
 </footer>
 
+<div id="galleryModal" class="gallery-modal" hidden>
+  <button type="button" class="gallery-close" aria-label="닫기">✕</button>
+  <button type="button" class="gallery-nav gallery-prev" aria-label="이전 사진">‹</button>
+  <img id="galleryImage" class="gallery-image" src="" alt="">
+  <button type="button" class="gallery-nav gallery-next" aria-label="다음 사진">›</button>
+  <div id="galleryCounter" class="gallery-counter"></div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="calendar.js"></script>
@@ -359,6 +369,54 @@
   const navMenu = document.getElementById('navMenu');
   navToggle.addEventListener('click', () => navMenu.classList.toggle('open'));
   navMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => navMenu.classList.remove('open')));
+
+  // --- Room photo gallery ---
+  const roomGalleries = {
+    small: ['img/room-small-1.jpg', 'img/room-small-2.jpg', 'img/room-small-3.jpg', 'img/room-small-4.jpg'],
+    large: ['img/room-large-1.jpg', 'img/room-large-2.jpg', 'img/room-large-3.jpg', 'img/room-large-4.jpg'],
+  };
+  let galleryPhotos = [];
+  let galleryIndex = 0;
+  const galleryModal = document.getElementById('galleryModal');
+  const galleryImage = document.getElementById('galleryImage');
+  const galleryCounter = document.getElementById('galleryCounter');
+
+  function showGalleryPhoto() {
+    galleryImage.src = galleryPhotos[galleryIndex];
+    galleryCounter.textContent = `${galleryIndex + 1} / ${galleryPhotos.length}`;
+  }
+  function openGallery(room) {
+    galleryPhotos = roomGalleries[room] || [];
+    if (!galleryPhotos.length) return;
+    galleryIndex = 0;
+    showGalleryPhoto();
+    galleryModal.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+  function closeGallery() {
+    galleryModal.hidden = true;
+    document.body.style.overflow = '';
+  }
+  function stepGallery(delta) {
+    galleryIndex = (galleryIndex + delta + galleryPhotos.length) % galleryPhotos.length;
+    showGalleryPhoto();
+  }
+
+  document.querySelectorAll('.gallery-btn').forEach((btn) => {
+    btn.addEventListener('click', () => openGallery(btn.dataset.room));
+  });
+  document.querySelector('.gallery-close').addEventListener('click', closeGallery);
+  document.querySelector('.gallery-prev').addEventListener('click', () => stepGallery(-1));
+  document.querySelector('.gallery-next').addEventListener('click', () => stepGallery(1));
+  galleryModal.addEventListener('click', (e) => {
+    if (e.target === galleryModal) closeGallery();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (galleryModal.hidden) return;
+    if (e.key === 'Escape') closeGallery();
+    if (e.key === 'ArrowLeft') stepGallery(-1);
+    if (e.key === 'ArrowRight') stepGallery(1);
+  });
 
   const PENSION_PHONE = '010-5825-7095';
   const ROOM_LABELS = { small: '작은 방', large: '큰 방' };

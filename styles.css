@@ -225,6 +225,43 @@ section{padding:90px 24px;scroll-margin-top:90px;}
 .facility-card h4{color:var(--green-deep);font-weight:800;margin-bottom:6px;}
 .facility-card p{color:#777;font-size:0.85rem;}
 
+/* Gallery lightbox */
+.gallery-btn{
+  margin-top:14px;border:none;cursor:pointer;
+  background:var(--green-deep);color:var(--white);
+}
+.gallery-btn:hover{background:var(--green);transform:none;}
+.gallery-modal{
+  position:fixed;inset:0;z-index:2000;
+  background:rgba(15,20,15,0.92);
+  display:flex;align-items:center;justify-content:center;
+}
+.gallery-image{
+  max-width:88vw;max-height:82vh;object-fit:contain;
+  border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,0.5);
+}
+.gallery-close{
+  position:absolute;top:20px;right:24px;
+  background:rgba(255,255,255,0.12);color:var(--white);
+  border:none;border-radius:50%;width:44px;height:44px;
+  font-size:1.2rem;cursor:pointer;
+}
+.gallery-close:hover{background:rgba(255,255,255,0.25);}
+.gallery-nav{
+  position:absolute;top:50%;transform:translateY(-50%);
+  background:rgba(255,255,255,0.12);color:var(--white);
+  border:none;border-radius:50%;width:52px;height:52px;
+  font-size:1.8rem;cursor:pointer;line-height:1;
+}
+.gallery-nav:hover{background:rgba(255,255,255,0.25);}
+.gallery-prev{left:16px;}
+.gallery-next{right:16px;}
+.gallery-counter{
+  position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
+  color:var(--white);font-size:0.85rem;opacity:0.85;
+  background:rgba(0,0,0,0.35);padding:6px 16px;border-radius:50px;
+}
+
 /* Reviews */
 .reviews{background:var(--white);}
 .review-summary{text-align:center;margin-bottom:36px;}
