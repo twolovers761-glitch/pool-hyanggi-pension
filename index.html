@@ -278,7 +278,7 @@
 <section class="cta" id="contact">
   <div class="section-inner">
     <h2>풀향기 펜션에서의 하루, 지금 예약하세요</h2>
-    <p>아래 내용을 채워 보내주시면 예약 문의가 접수됩니다</p>
+    <p>날짜를 고르고 제출하시면 그 즉시 예약이 잡힙니다</p>
 
     <form id="inquiryForm" class="inquiry-form" novalidate>
       <div class="form-row">
@@ -301,9 +301,24 @@
           </select>
         </div>
         <div class="form-group">
+          <label for="nights">숙박 일수</label>
+          <select id="nights" name="nights">
+            <option value="1">1박</option>
+            <option value="2">2박</option>
+            <option value="3">3박</option>
+            <option value="4">4박</option>
+            <option value="5">5박</option>
+            <option value="6">6박</option>
+            <option value="7">7박</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
           <label for="guests">인원</label>
           <input type="number" id="guests" name="guests" min="1" max="20" placeholder="예: 4">
         </div>
+        <div class="form-group"></div>
       </div>
       <div class="form-group">
         <label>희망 체크인 날짜</label>
@@ -315,8 +330,8 @@
         <label for="message">문의 내용</label>
         <textarea id="message" name="message" rows="4" placeholder="궁금하신 점을 남겨주세요"></textarea>
       </div>
-      <button type="submit" id="inquirySubmit" class="btn">📩 예약 문의 보내기</button>
-      <p id="formStatus" class="form-note">보내주신 내용은 저장되어 사장님께 바로 전달됩니다.</p>
+      <button type="submit" id="inquirySubmit" class="btn">📅 예약 접수하기</button>
+      <p id="formStatus" class="form-note">제출 즉시 날짜가 잡힙니다. 입금 확인 후 최종 확정돼요.</p>
     </form>
 
     <p class="or-divider">또는</p>
@@ -403,10 +418,20 @@
     checkinPicker.setBlockedDates(blockedByRoom[roomSelect.value] || blockedByRoom.small);
   })();
 
-  function smsFallbackUrl(name, phone, room, checkin, guests, message) {
+  function datesInRange(checkinStr, nights) {
+    const [y, m, d] = checkinStr.split('-').map(Number);
+    const dates = [];
+    for (let i = 0; i < nights; i++) {
+      const dt = new Date(y, m - 1, d + i);
+      dates.push(calDateStr(dt.getFullYear(), dt.getMonth(), dt.getDate()));
+    }
+    return dates;
+  }
+
+  function smsFallbackUrl(name, phone, room, checkin, nights, guests, message) {
     const lines = ['[풀향기 펜션 예약 문의]', `이름: ${name}`, `연락처: ${phone}`];
     if (room) lines.push(`희망 객실: ${ROOM_LABELS[room] || room}`);
-    if (checkin) lines.push(`희망 체크인: ${checkin}`);
+    if (checkin) lines.push(`희망 체크인: ${checkin} (${nights}박)`);
     if (guests) lines.push(`인원: ${guests}명`);
     if (message) lines.push(`문의내용: ${message}`);
     return `sms:${PENSION_PHONE}?body=${encodeURIComponent(lines.join('\n'))}`;
@@ -420,13 +445,17 @@
     const phone = inquiryForm.phone.value.trim();
     const room = inquiryForm.room.value;
     const checkin = inquiryForm.checkin.value;
+    const nights = Number(inquiryForm.nights.value);
     const guests = inquiryForm.guests.value.trim();
     const message = inquiryForm.message.value.trim();
 
-    if (checkin && blockedByRoom[room] && blockedByRoom[room].has(checkin)) {
-      formStatus.textContent = '선택하신 날짜가 방금 마감되었어요. 날짜를 다시 선택해주세요.';
+    const rangeDates = checkin ? datesInRange(checkin, nights) : [];
+    const hasConflict = rangeDates.some((d) => blockedByRoom[room] && blockedByRoom[room].has(d));
+    if (hasConflict) {
+      formStatus.textContent = '선택하신 기간 중 이미 마감된 날짜가 있어요. 날짜를 다시 선택해주세요.';
       formStatus.className = 'form-status error';
       checkinPicker.setBlockedDates(blockedByRoom[room]);
+      checkinPicker.setSelectedDate(null);
       inquiryForm.checkin.value = '';
       checkinSelectedText.textContent = '';
       return;
@@ -441,6 +470,7 @@
       phone,
       room,
       checkin_date: checkin || null,
+      nights,
       guests: guests ? Number(guests) : null,
       message: message || null,
     });
@@ -450,15 +480,20 @@
     if (error) {
       formStatus.textContent = '전송에 실패했어요. 문자 앱으로 대신 보내드릴게요.';
       formStatus.className = 'form-status error';
-      window.location.href = smsFallbackUrl(name, phone, room, checkin, guests, message);
+      window.location.href = smsFallbackUrl(name, phone, room, checkin, nights, guests, message);
       return;
+    }
+
+    if (rangeDates.length && blockedByRoom[room]) {
+      rangeDates.forEach((d) => blockedByRoom[room].add(d));
+      availabilityCalendar.setBlockedDates(blockedByRoom[currentAvailabilityRoom]);
     }
 
     inquiryForm.reset();
     checkinPicker.setSelectedDate(null);
     checkinPicker.setBlockedDates(blockedByRoom.small);
     checkinSelectedText.textContent = '';
-    formStatus.textContent = '문의가 접수되었습니다. 빠르게 연락드릴게요!';
+    formStatus.textContent = '예약 접수 완료! 입금 확인 후 최종 확정됩니다.';
     formStatus.className = 'form-status success';
   });
 </script>
