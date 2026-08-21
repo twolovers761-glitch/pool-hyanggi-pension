@@ -3,3 +3,5 @@
 img/*
 !img/room-*.jpg
 !img/hero-*.jpg
+!img/favicon.jpg
+!img/og-image.jpg
